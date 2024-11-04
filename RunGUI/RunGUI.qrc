@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="RunGUI"/>
+  <qresource prefix="img">
+    <file>RunGUI.ico</file>
+  </qresource>
+</RCC>
