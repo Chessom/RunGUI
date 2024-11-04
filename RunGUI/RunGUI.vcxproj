@@ -117,6 +117,8 @@
     <QtMoc Include="RunGUI.h" />
     <ClCompile Include="RunGUI.cpp" />
     <ClCompile Include="main.cpp" />
+    <None Include="..\.gitignore" />
+    <None Include="..\README.md" />
     <None Include="RunGUI.ico" />
     <ResourceCompile Include="RunGUI.rc" />
   </ItemGroup>

@@ -21,6 +21,9 @@
       <UniqueIdentifier>{639EADAA-A684-42e4-A9AD-28FC9BCB8F7C}</UniqueIdentifier>
       <Extensions>ts</Extensions>
     </Filter>
+    <Filter Include="说明文件">
+      <UniqueIdentifier>{82e0b6f8-d972-4a22-843c-6c321ed17643}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="RunGUI.qrc">
@@ -46,5 +49,13 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Filter>说明文件</Filter>
+    </None>
+    <None Include="..\.gitignore">
+      <Filter>说明文件</Filter>
+    </None>
   </ItemGroup>
 </Project>
