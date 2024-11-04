@@ -46,25 +46,6 @@ RunGUI::~RunGUI()
 
 void RunGUI::on_start_run()
 {
-    QTextToSpeech speech;
-
-    // 检查是否支持文本到语音功能
-    if (speech.availableVoices().isEmpty()) {
-        qDebug() << "没有可用的语音引擎";
-    }
-
-    // 设置语音引擎
-    speech.setVoice(speech.availableVoices().first());
-
-    // 设置音量
-    speech.setVolume(10.0);
-
-    // 设置语速
-    speech.setRate(20.0);
-
-    // 播放文本
-    speech.say("你好，世界!");
-
     if (!dump_to_config_file())
         return;
 
