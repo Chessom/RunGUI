@@ -364,3 +364,4 @@ FodyWeavers.xsd
 
 exe/
 /RunGUI/settings.yaml
+/RunGUI/log.txt
