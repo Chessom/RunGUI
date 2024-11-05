@@ -2,6 +2,7 @@
 
 #include <QtWidgets/QMainWindow>
 #include <qprocess.h>
+#include <qevent.h>
 #include "ui_RunGUI.h"
 #include <yaml-cpp/yaml.h>
 #include <filesystem>
@@ -13,6 +14,8 @@ class RunGUI : public QMainWindow
 public:
     RunGUI(QWidget *parent = nullptr);
     ~RunGUI();
+protected:
+    void closeEvent(QCloseEvent* event) override;
 private slots:
     void on_select_directory();
     void on_start_run();

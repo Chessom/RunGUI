@@ -4,6 +4,12 @@
 #include <qregularexpression.h>
 #include <QtTextToSpeech/qtexttospeech.h>
 #include <fstream>
+#ifdef Q_OS_WIN
+#include<Windows.h>
+#endif
+#ifdef Q_OS_LINUX
+#include<unistd.h>
+#endif
 RunGUI::RunGUI(QWidget *parent)
     : QMainWindow(parent)
 {
@@ -12,6 +18,13 @@ RunGUI::RunGUI(QWidget *parent)
     connect(ui.select_directory_button, &QPushButton::clicked, this, &RunGUI::on_select_directory);
     connect(ui.start_run_button, &QPushButton::clicked, this, &RunGUI::on_start_run);
     connect(ui.stop_run, &QPushButton::clicked, this, &RunGUI::on_stop_run);
+    connect(&process, &QProcess::finished, [this] {
+        if (process.waitForFinished()) {
+            ui.ErrorOutput->append(tr("RealRun进程已终止。\n"));
+            process.close();
+            ui.stop_run->setEnabled(false);
+        }
+    });
     if (fs::exists("settings.yaml")) {
         try {
             settings = YAML::LoadFile("settings.yaml");
@@ -39,10 +52,20 @@ RunGUI::RunGUI(QWidget *parent)
         fout << settings;
         fout.close();
     }
+    ui.stop_run->setEnabled(false);
+    
 }
 
 RunGUI::~RunGUI()
 {}
+
+void RunGUI::closeEvent(QCloseEvent * event)
+{
+    if (ui.stop_run->isEnabled()) {
+        on_stop_run();
+    }
+    event->accept();
+}
 
 void RunGUI::on_start_run()
 {
@@ -52,32 +75,56 @@ void RunGUI::on_start_run()
     QObject::connect(&process, &QProcess::readyReadStandardOutput, [this]() {
         QByteArray output = process.readAllStandardOutput();
         QString outputStr = QString::fromLocal8Bit(output);
-        ui.ErrorOutput->append(parseAnsiToHtml(outputStr) + "\n");
+        ui.ErrorOutput->append(parseAnsiToHtml(outputStr));
         });
 
     QObject::connect(&process, &QProcess::readyReadStandardError, [this]() {
         QByteArray errorOutput = process.readAllStandardError();
-        ui.ErrorOutput->append(parseAnsiToHtml(errorOutput) + "\n");
+        ui.ErrorOutput->append(parseAnsiToHtml(errorOutput));
         });
-
     process.setWorkingDirectory(QString::fromStdString(directory_path.string()));
     process.start("python", { QString::fromStdString((directory_path / "main.py").string()) });
-
-    
     if (!process.waitForStarted())
     {
         QMessageBox::critical(
             this, 
             "启动失败", 
             "无法启动RealRun进程", QMessageBox::Ok);
+        ui.stop_run->setEnabled(false);
+        ui.start_run_button->setEnabled(true);
         return;
+    }
+    else {
+        ui.statusBar->showMessage(tr("正在跑步······"));
+        ui.stop_run->setEnabled(true);
+        ui.start_run_button->setEnabled(false);
     }
 }
 
 void RunGUI::on_stop_run() {
-    process.close();
-    process.waitForFinished();
-    ui.ErrorOutput->append(tr("RealRun进程已终止。\n"));
+#ifdef Q_OS_WIN
+    qint64 pid = process.processId();
+    if (AttachConsole(pid)) {
+        GenerateConsoleCtrlEvent(CTRL_C_EVENT, pid);
+        FreeConsole();
+    }
+#endif // Q_OS_WIN
+#ifdef Q_OS_LINUX
+    qint64 pid = process.processId();
+    kill(pid, SIGINT);
+#endif // Q_OS_LINUX
+    if (process.waitForFinished()) {
+        ui.ErrorOutput->append(tr("RealRun进程已终止。\n"));
+        process.close();
+        ui.stop_run->setEnabled(false);
+        ui.start_run_button->setEnabled(true);
+        ui.statusBar->showMessage(tr("跑步已终止"));
+    }
+    else {
+        ui.ErrorOutput->append(tr("RealRun进程终止失败！\n"));
+        ui.stop_run->setEnabled(true);
+        ui.start_run_button->setEnabled(false);
+    }
 }
 
 bool RunGUI::dump_to_config_file()
